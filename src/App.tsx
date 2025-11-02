@@ -1,31 +1,51 @@
 import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
+// Pages
+import MainPage from "./pages/index/index";
+import TypePage from "./pages/type/index";
+import UploadPage from "./pages/upload/index";
+import AnalyzingPage from "./pages/Analyzing/index";
+import DatePage from "./pages/Date/index";
+import ListPage from "./pages/List/index";
+// CSS
 import "./App.css";
 
-function App() {
-  const [count, setCount] = useState(0);
+type Page = "main" | "type" | "upload" | "analyzing" | "date" | "list" | "result";
 
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>count is {count}</button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">Click on the Vite and React logos to learn more</p>
-    </>
-  );
+function App() {
+  const [currentPage, setCurrentPage] = useState<Page>("main");
+
+  const FileUpload = () => {
+    setCurrentPage("analyzing");
+
+    setTimeout(() => {
+      setCurrentPage("date");
+    }, 3000);
+  };
+
+  const showPage = () => {
+    switch (currentPage) {
+      case "main":
+        return <MainPage goNext={() => setCurrentPage("type")} />;
+      case "type":
+        return <TypePage goNext={() => setCurrentPage("upload")} />;
+      case "upload":
+        return <UploadPage goNext={FileUpload} />;
+      case "analyzing":
+        return <AnalyzingPage />;
+      case "date":
+        return <DatePage goNext={() => setCurrentPage("list")} />;
+      case "list":
+        return <ListPage />;
+
+      case "result":
+        return <div>결과 페이지 (구현 예정)</div>;
+
+      default:
+        return <MainPage goNext={() => setCurrentPage("type")} />;
+    }
+  };
+
+  return <>{showPage()}</>;
 }
 
 export default App;
