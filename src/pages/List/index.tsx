@@ -23,8 +23,8 @@ function ListPage() {
   };
 
   return (
-    <div className="flex flex-col justify-center items-center h-screen">
-      <h2 className="text-3xl font-semibold mb-10">상품 리스트를 작성해주세요</h2>
+    <div className="flex flex-col justify-center items-center h-screen bg-[#F5FDE7]">
+      <h2 className="text-3xl font-semibold mb-10 text-[#252525]">상품 리스트를 작성해주세요</h2>
 
       <button onClick={AddItem}>+</button>
 
