@@ -7,6 +7,8 @@ import DatePage from "./pages/Date/index";
 import ListPage from "./pages/List/index";
 import "./App.css";
 
+import type { Item } from "./pages/List/index"; // ListPage의 Item 타입을 import
+
 type Page = "main" | "type" | "upload" | "analyzing" | "date" | "list" | "result"; // 페이지 타입 정의
 
 const parseChatDates = (fileContent: string): { start: string; end: string } | null => {
@@ -36,28 +38,77 @@ function App() {
   const [currentPage, setCurrentPage] = useState<Page>("main");
   const [dateRange, setDateRange] = useState<{ start: string; end: string } | null>(null); // 날짜 범위 상태 추가
 
+  // 백엔드로 전송할 상태들
+  const [chatFile, setChatFile] = useState<File | null>(null); // 파일
+  const [selectedDateRange, setSelectedDateRange] = useState<[Date | null, Date | null]>([
+    null,
+    null,
+  ]); // 선택된 날짜
+  const [productList, setProductList] = useState<Item[]>([]); // 리스트
+
   const FileUpload = async (file: File) => {
     // 파일 업로드 처리 함수
     setCurrentPage("analyzing");
+    setChatFile(file);
 
     try {
-      // 파일 읽기
       const text = await file.text();
       const dates = parseChatDates(text);
       setDateRange(dates);
-
       setTimeout(() => {
         setCurrentPage("date");
       }, 3000);
     } catch (error) {
-      // 오류 처리
       console.error(error);
-      setDateRange(null);
-      setCurrentPage("date");
+      setDateRange(null); // 날짜 파싱 실패
+      setCurrentPage("date"); // 실패하더라도 다음 페이지로 이동
     }
   };
 
-  // 현재 페이지에 따라 적절한 컴포넌트를 렌더링하는 함수
+  const handleSubmit = async () => {
+    if (!chatFile || !selectedDateRange[0] || !selectedDateRange[1] || productList.length === 0) {
+      alert("모든 정보를 올바르게 입력했는지 확인해주세요.");
+      return;
+    }
+
+    const transformedItems = productList.map((item) => ({
+      name: item.name,
+      keywords: item.keyword.split(",").map((k) => k.trim()),
+    }));
+
+    const itemData = {
+      date_range: {
+        start: selectedDateRange[0],
+        end: selectedDateRange[1],
+      },
+      items: transformedItems,
+    };
+
+    const formData = new FormData();
+
+    formData.append("file", chatFile);
+    formData.append("item_data", JSON.stringify(itemData));
+
+    try {
+      const backendApiUrl = `${import.meta.env.VITE_API_URL}/api/upload`;
+
+      const response = await fetch(backendApiUrl, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log("전송 성공:", result);
+      } else {
+        alert("서버 전송에 실패했습니다.");
+      }
+    } catch (error) {
+      console.error("전송 중 오류 발생:", error);
+      alert("네트워크 오류가 발생했습니다.");
+    }
+  };
+
   const showPage = () => {
     switch (currentPage) {
       case "main":
@@ -73,10 +124,18 @@ function App() {
           <DatePage
             goNext={() => setCurrentPage("list")}
             dateRange={dateRange ?? { start: "날짜 없음", end: "날짜 없음" }}
+            onDateChange={setSelectedDateRange}
+            initialDateRange={selectedDateRange}
           />
         );
       case "list":
-        return <ListPage />;
+        return (
+          <ListPage
+            onSubmit={handleSubmit}
+            onListChange={setProductList}
+            initialList={productList}
+          />
+        );
       default:
         return <MainPage goNext={() => setCurrentPage("type")} />;
     }
