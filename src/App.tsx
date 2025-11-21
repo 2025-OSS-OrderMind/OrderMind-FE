@@ -5,11 +5,23 @@ import UploadPage from "./pages/upload/index";
 import AnalyzingPage from "./pages/Analyzing/index";
 import DatePage from "./pages/Date/index";
 import ListPage from "./pages/List/index";
+import IgnorePage from "./pages/Ignore/index";
+import EmailPage from "./pages/Email/index";
+import ResultPage from "./pages/Result/index";
 import "./App.css";
 
 import type { Item } from "./pages/List/index"; // ListPage의 Item 타입을 import
 
-type Page = "main" | "type" | "upload" | "analyzing" | "date" | "list" | "result"; // 페이지 타입 정의
+type Page =
+  | "main"
+  | "type"
+  | "upload"
+  | "analyzing"
+  | "date"
+  | "list"
+  | "ignore"
+  | "email"
+  | "result"; // 페이지 타입 정의
 
 const parseChatDates = (fileContent: string): { start: string; end: string } | null => {
   const dateRegex = /\d{4}년 \d{1,2}월 \d{1,2}일 (일|월|화|수|목|금|토)요일/g; // 정규표현식
@@ -45,6 +57,8 @@ function App() {
     null,
   ]); // 선택된 날짜
   const [productList, setProductList] = useState<Item[]>([]); // 리스트
+  const [ignoreList, setIgnoreList] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
 
   const FileUpload = async (file: File) => {
     // 파일 업로드 처리 함수
@@ -66,7 +80,13 @@ function App() {
   };
 
   const handleSubmit = async () => {
-    if (!chatFile || !selectedDateRange[0] || !selectedDateRange[1] || productList.length === 0) {
+    if (
+      !chatFile ||
+      !selectedDateRange[0] ||
+      !selectedDateRange[1] ||
+      productList.length === 0 ||
+      !email
+    ) {
       alert("모든 정보를 올바르게 입력했는지 확인해주세요.");
       return;
     }
@@ -76,12 +96,16 @@ function App() {
       keywords: item.keyword.split(",").map((k) => k.trim()),
     }));
 
+    const transformedIgnoreList = ignoreList.split(",").map((k) => k.trim());
+
     const itemData = {
       date_range: {
         start: selectedDateRange[0],
         end: selectedDateRange[1],
       },
       items: transformedItems,
+      ignore_list: transformedIgnoreList,
+      email_address: email,
     };
 
     const formData = new FormData();
@@ -100,6 +124,7 @@ function App() {
       if (response.ok) {
         const result = await response.json();
         console.log("전송 성공:", result);
+        setCurrentPage("result");
       } else {
         alert("서버 전송에 실패했습니다.");
       }
@@ -131,11 +156,23 @@ function App() {
       case "list":
         return (
           <ListPage
-            onSubmit={handleSubmit}
+            goNext={() => setCurrentPage("ignore")}
             onListChange={setProductList}
             initialList={productList}
           />
         );
+      case "ignore":
+        return (
+          <IgnorePage
+            goNext={() => setCurrentPage("email")}
+            onIgnoreListChange={setIgnoreList}
+            initialIgnoreList={ignoreList}
+          />
+        );
+      case "email":
+        return <EmailPage onSubmit={handleSubmit} onEmailChange={setEmail} initialEmail={email} />;
+      case "result":
+        return <ResultPage />;
       default:
         return <MainPage goNext={() => setCurrentPage("type")} />;
     }
