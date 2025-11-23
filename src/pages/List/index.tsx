@@ -7,12 +7,12 @@ export interface Item {
 }
 
 interface ListPageProps {
-  onSubmit: () => void;
+  goNext: () => void;
   onListChange: (items: Item[]) => void;
   initialList: Item[];
 }
 
-function ListPage({ onSubmit, onListChange, initialList }: ListPageProps) {
+function ListPage({ goNext, onListChange, initialList }: ListPageProps) {
   const [items, setItems] = useState<Item[]>(() => {
     if (initialList.length > 0) {
       return initialList;
@@ -88,7 +88,7 @@ function ListPage({ onSubmit, onListChange, initialList }: ListPageProps) {
 
       <footer className="flex justify-end">
         <button
-          onClick={onSubmit}
+          onClick={goNext}
           className="px-8 py-3 bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-600 transition-colors"
         >
           다음
