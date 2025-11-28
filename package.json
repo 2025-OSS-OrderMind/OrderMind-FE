@@ -11,7 +11,7 @@
     "format": "prettier --write --cache .",
     "deploy": "gh-pages -d dist"
   },
-  "homepage": "https://order-mind.github.io/OrderMind-FE/",
+  "homepage": "https://order-mind.github.io/",
   "dependencies": {
     "@types/react-datepicker": "^7.0.0",
     "autoprefixer": "^10.4.21",
