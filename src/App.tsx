@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { format } from "date-fns";
+import { ko } from "date-fns/locale";
 import MainPage from "./pages/index/index";
 import TypePage from "./pages/type/index";
 import UploadPage from "./pages/upload/index";
@@ -96,15 +98,30 @@ function App() {
       keywords: item.keyword.split(",").map((k) => k.trim()),
     }));
 
-    const transformedIgnoreList = ignoreList.split(",").map((k) => k.trim());
+    const ignoreKeywords = ignoreList
+      .split(",")
+      .map((k) => k.trim())
+      .filter((k) => k.length > 0);
+
+    const transformedIgnoreItems = ignoreKeywords.map((keyword) => ({
+      name: keyword,
+    }));
+
+    const formattedStartDate = selectedDateRange[0]
+      ? format(selectedDateRange[0], "yyyy. MM. dd. HH:mm", { locale: ko })
+      : null;
+
+    const formattedEndDate = selectedDateRange[1]
+      ? format(selectedDateRange[1], "yyyy. MM. dd. HH:mm", { locale: ko })
+      : null;
 
     const itemData = {
       date_range: {
-        start: selectedDateRange[0],
-        end: selectedDateRange[1],
+        start: formattedStartDate,
+        end: formattedEndDate,
       },
       items: transformedItems,
-      ignore_list: transformedIgnoreList,
+      ignore_items: transformedIgnoreItems,
       email_address: email,
     };
 
