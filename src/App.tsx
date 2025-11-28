@@ -93,10 +93,15 @@ function App() {
       return;
     }
 
-    const transformedItems = productList.map((item) => ({
-      name: item.name,
-      keywords: item.keyword.split(",").map((k) => k.trim()),
-    }));
+    const transformedItems = productList.map((item) => {
+      const keywordsArray = item.keyword.split(",").map((k) => k.trim());
+      const validKeywords = keywordsArray.filter((k) => k.length > 0);
+
+      return {
+        name: item.name,
+        keywords: validKeywords,
+      };
+    });
 
     const ignoreKeywords = ignoreList
       .split(",")
